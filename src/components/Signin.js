@@ -58,7 +58,7 @@ const Signin = ({match: { params }})=>{
        <div className="flex flex-col pb-6 p-12 w-5/12 bg-white  lg:w-1/2 xl:w-2/5   sm:p-10  sm:w-1/2 md:p-10 md:w-1/2">
            <h1 className="text-xl text-gray-500 font-semibold   " >Already have an account?</h1>
            <h2 className="text-base text-gray-600 font-bold ">Sign in here</h2> 
-           <a href='http://localhost:8000/api/auth/google' className="hover:bg-purple-50 cursor-pointer mt-5 flex justify-center items-center skew-y-1 p-1 border rounded-md border-gray-300 font-normal sm:py-3">
+           <a href='http://13.232.187.199:8000/api/auth/google' className="hover:bg-purple-50 cursor-pointer mt-5 flex justify-center items-center skew-y-1 p-1 border rounded-md border-gray-300 font-normal sm:py-3">
             <img className="mr-3 w-8 h-8 sm:mr-2 sm:w-5 sm:h-5" src={googleIcon} alt="google_icon"/>
             <h4 className="font-bold sm:text-sm sm:font-semibold">Sign in with Google</h4>
            </a>
