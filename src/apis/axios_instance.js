@@ -3,7 +3,7 @@ import axiosRetry from 'axios-retry';
 
 
 let instance = axios.create({   
-    baseURL:'http://localhost:8000',
+    baseURL:'http://13.232.187.199:8000',
     withCredentials:true
 });
 
