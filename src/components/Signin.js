@@ -1,9 +1,9 @@
 import React,{useState} from 'react';
-import axios from 'axios';
+
 import { Redirect } from "react-router-dom";
 import googleIcon from '../static/icons8-google.svg';
-import {useSetUserContext} from '../context/auth_context';
-import { setHeader } from '../apis/axios_instance';
+import { instance } from '../apis/axios_instance';
+
 
 
 
@@ -15,7 +15,7 @@ const Signin = ({match: { params }})=>{
    const [err,setError] = useState('');
    const [redirect,setredirect] = useState(null);
 
-   const changeUser = useSetUserContext();
+   // const changeUser = useSetUserContext();
 
    
 
@@ -24,7 +24,7 @@ const Signin = ({match: { params }})=>{
    const getData=(event)=>{
       event.preventDefault();
      console.log(email,password)
-   axios.post('/api/signin',{email,password} ).then(res=>{
+   instance.post('/api/signin',{email,password} ).then(res=>{
       console.log("res"+res.data['access-token'])
    
       if(res.status===200 && res.data['access-token']){       

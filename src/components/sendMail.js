@@ -1,5 +1,6 @@
 import React,{useState} from 'react';
-import axios from 'axios';
+import { instance } from '../apis/axios_instance';
+
 import { Redirect } from 'react-router-dom';
 
 
@@ -9,7 +10,6 @@ const SendMail = ()=>{
     const [err,setError] = useState('');
 
 
-    const instance = axios.create()
 
  
     const getData=(event)=>{

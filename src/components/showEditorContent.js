@@ -1,8 +1,9 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState,useEffect,useReducer } from 'react';
 import draftToMarkdown from 'draftjs-to-markdown';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 import userPic from './img/pic.jpg';
-import axios from 'axios';
+import { instance } from '../apis/axios_instance';
+
 
 
 const getColor = {
@@ -43,14 +44,18 @@ const getFontSize = {
 const ShowEditorContent=(props)=>{
 
     const [likePressed,setLikePressed] = useState(false);
-    const [bookmarkPressed,setBookmarkPressed]  = useState(false);
     const [isFollowing,setFollowing] = useState(false);
     const [data,setData] = useState(null);
+    const [bookmarkPressed, setBookmarkPressed] =  useState(false);
+
+  const currentUser = JSON.parse(localStorage.getItem('user'));
+
+
 
 
     useEffect(()=>{
-    
-      axios.get('/blog/getBlog',{ params:{
+    console.log(getBlogID())
+      instance.get('/singleBlog/getBlog',{ params:{
         blogID: getBlogID()
       }}).then((res)=>{
         console.log(res.data)
@@ -59,10 +64,23 @@ const ShowEditorContent=(props)=>{
           title: res.data.blogTitle,
           date: res.data.date,
           views: res.data.views,
-          author: res.data.user,
-          likes: res.data.likes
+          author: res.data.userName,
+          authorID: res.data.user,
+          likes: res.data.likes,
+          coverImageURL: res.data.coverImage,
+          blogID:res.data.blogID
 
         })
+
+        const bookmarks = JSON.parse(localStorage.getItem('bookmarks'));
+        if(bookmarks)
+          setBookmarkPressed( bookmarks.includes(res.data.blogID))
+
+        const followingList = JSON.parse(localStorage.getItem('following'));
+        if (followingList)
+          setFollowing(followingList.includes(res.data.user))
+
+        
         
       })
     },[])
@@ -71,6 +89,8 @@ const ShowEditorContent=(props)=>{
       const st = props.match.params.blogTitle.replaceAll("-", " ");
       return st.substr(st.lastIndexOf(" ") + 1)
     }
+
+ 
 
 
 
@@ -273,7 +293,7 @@ const ShowEditorContent=(props)=>{
       }
 
       const pressLikeButton = ()=>{
-        axios.put('/blog/update-like-counter',{
+        instance.put('/blog/update-like-counter',{
           blogID: getBlogID()
         })
 
@@ -281,12 +301,29 @@ const ShowEditorContent=(props)=>{
 
       } 
 
-      const pressBookmarkButton = () =>{
-          setBookmarkPressed(!bookmarkPressed?true:false);
+      const pressBookmarkButton = (blogID) =>{
+        setBookmarkPressed(!bookmarkPressed?true:false);
+        let favList=[]
+        favList = JSON.parse(localStorage.getItem('bookmarks'));
+        if(!bookmarkPressed)
+          localStorage.setItem('bookmarks',JSON.stringify(!favList?[blogID]:[...favList,blogID]))
+        else
+         {
+          favList = favList.filter((value)=>  value!=blogID)
+          localStorage.setItem('bookmarks', JSON.stringify(favList))
+         }
       }   
       
-      const pressFollowButton = () =>{
+      const pressFollowButton = (user) =>{
         setFollowing(!isFollowing?true:false);
+        let folList = []
+        folList = JSON.parse(localStorage.getItem('following'));
+        if (!isFollowing)
+          localStorage.setItem('following', JSON.stringify(!folList ? [user] : [...folList, user]))
+        else {
+          folList = folList.filter((value) => value != user)
+          localStorage.setItem('following', JSON.stringify(folList))
+        }
     }   
 
   if (!data)
@@ -300,7 +337,7 @@ const ShowEditorContent=(props)=>{
             <div className="ml-2">
              <div className="flex items-center">
                <div className="font-semibold font-Arial text-base">{data.author}</div>
-               <button onClick={()=>{pressFollowButton()}}className="ml-4 rounded-xl px-3 py-px text-white  bg-green-600 hover:bg-green-700" >{isFollowing?'Following':'Follow'}</button>
+              <button onClick={() => { pressFollowButton(data.authorID)}}className="ml-4 rounded-xl px-3 py-px text-white  bg-green-600 hover:bg-green-700" >{isFollowing?'Following':'Follow'}</button>
               </div>
                <div className=" text-base text-gray-400 font-normal">Posted on <span>{data.date}</span>
                <span className="ml-1 mr-1 text-sm">&#46;</span>4 min Read </div>
@@ -314,17 +351,17 @@ const ShowEditorContent=(props)=>{
                  <div className="ml-0.5 text-gray-400 text-sm">{data.views}</div>
                </div>
                <div className="flex items-center">
-                 <button onClick={()=>pressLikeButton()}>{ !likePressed?
+                <button className="" onClick={() => pressLikeButton()}>{ !likePressed?
                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                    </svg>:
-                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                   <svg  xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
                    </svg>}
                  </button>
                  <div className="ml-0.5 text-gray-400 text-sm">{data.likes}</div>
                </div>  
-               <button onClick={()=>pressBookmarkButton()}>{ !bookmarkPressed?
+               <button onClick={()=>pressBookmarkButton(data.blogID)}>{ !bookmarkPressed?
                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                  </svg>:
@@ -335,8 +372,10 @@ const ShowEditorContent=(props)=>{
                </button>
             </div>
         </div>
-
-        <div className="mt-5" dangerouslySetInnerHTML={createMarkup()} />
+        <div className="flex justify-center">
+          <img className="h-80 w-full mt-10" src={data.coverImageURL}/>
+        </div>
+        <div className="mt-5 mb-10" dangerouslySetInnerHTML={createMarkup()} />
       </div>
      
     </div>

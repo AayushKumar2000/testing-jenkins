@@ -7,7 +7,7 @@ import draftToMarkdown from 'draftjs-to-markdown';
 import {stateToHTML} from 'draft-js-export-html';
 
 
-function MyEditor({editorContent,draftID}) {
+function MyEditor({ editorContent,blogContent,draftID}) {
   // const [editorState, setEditorState] = useState(
   //   () => EditorState.createEmpty()
   // );
@@ -18,12 +18,22 @@ function MyEditor({editorContent,draftID}) {
   console.log(data.editorState)
 
    newEditorState = EditorState.createWithContent(convertFromRaw(data.editorState))
+    console.log(newEditorState)
+
   }
+
+  if (blogContent){
+    console.log(blogContent)
+    newEditorState = EditorState.createWithContent(convertFromRaw(blogContent))
+    console.log(newEditorState)
+  }
+
 
 
   const [editorState, setEditorState] = useState(
     () => newEditorState 
   );
+  console.log(editorState)
 
 
   let currentContentAsHTML="";
@@ -67,7 +77,7 @@ function MyEditor({editorContent,draftID}) {
       editorState={editorState} 
       placeholder="Write here"
       onEditorStateChange={handleEditorChange}
-      // wrapperClassName="p-2"
+      //  wrapperClassName="bg-red-200"
        editorClassName="pl-5 pr-5"
       // toolbarClassName="shadow-sm "      
       toolbar={{

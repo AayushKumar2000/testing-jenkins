@@ -1,4 +1,5 @@
-import axios from 'axios';
+import { instance } from '../apis/axios_instance';
+
 import React,{useState} from 'react';
 import { Redirect } from "react-router-dom";
 import googleIcon from '../static/icons8-google.svg';
@@ -12,7 +13,6 @@ const Signup = ()=>{
 
 
 
-   const instance = axios.create()
 
    const getData=(event)=>{
       event.preventDefault();

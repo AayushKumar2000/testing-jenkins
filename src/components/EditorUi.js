@@ -2,6 +2,7 @@ import React, { useState, useEffect} from 'react';
 import MyEditor from './editor'
 import { convertToRaw } from 'draft-js';
 import userPic from './img/pic.jpg';
+import { instance } from '../apis/axios_instance';
 import axios from 'axios';
 
 
@@ -18,13 +19,35 @@ const EditorUi = (props) =>{
   
 console.log(newTime)
   const [wordCount, setWordCount] = useState(0);
-  const [blogID, setBlofID] = useState(Date.now())
+  const [blogID, setBlogID] = useState(Date.now())
   const [editorState,setEditorState] = useState(null); 
   const [title,setTitle] = useState(savedDraft?savedDraft.title:"");
   const [draftSavedTime,setDraftSavedTime] = useState(0)
   const [ visibilityType, setVisibilityType] = useState('PUBLIC');
   const [publishStatus, setPublishStatus] = useState("Publish");
   const [copyStatus,setCopyStatus] = useState("Copy URL")
+  const [coverImage,setCoverImage] = useState(null)
+ const [blogContent,setBlogContent] = useState(null)
+
+  useEffect(()=>{
+    if (props.match.params.blogID){
+      instance.get('/singleBlog/getBlog', {
+        params: {
+          blogID: props.match.params.blogID
+        }
+      }).then((res) => {
+        setCoverImage(res.data.coverImage)
+        setTitle(res.data.blogTitle)
+        setBlogContent(JSON.parse(res.data.blogContent))
+        setVisibilityType(res.data.visibilityType)
+        setBlogID(res.data.blogID)
+      })
+
+    }
+
+  },[])
+
+  console.log(coverImage)
 
   const editorContent = (state)=>{
     console.log(state)
@@ -43,16 +66,22 @@ console.log(newTime)
     
     
   }
-
-  const onPublishPress = ()=>{
+  
+  const onPublishPress = async ()=>{
     setPublishStatus("Publishing...")
-    console.log(JSON.stringify(editorState))
-    axios.post('/blog/publish',{
+    const key = Math.floor(Math.random() * 100000);
+    const { data: { preSignedURL}} = await instance.get('/blog/getS3CoverImageSignedURL',{params: { key }});
+    console.log(preSignedURL);
+
+     await axios.put(preSignedURL, coverImage, { headers: { 'Content-Type': 'image/jpeg' }})
+
+    instance.post('/blog/publish',{
       "blogID": blogID,
       "blogContent": JSON.stringify(editorState),
-      "user": user.name,
+      "user": user.email,
       "type":visibilityType.toUpperCase(),
-      "title": title
+      "title": title,
+      "coverImage": key
 
     }).then((res)=>{
       if(res.status===201)
@@ -87,6 +116,11 @@ console.log(newTime)
 
   }
 
+
+  const fileChangedHandler = (event) => {
+    const file = event.target.files[0]
+    setCoverImage(file)
+  }
    
  
 
@@ -94,22 +128,39 @@ console.log(newTime)
      <div className="flex items-center  pl-5 h-16 bg-purple-600 w-full text-white">
        <div> BlogNow</div>
        <div className="ml-auto pr-10 flex items-center">
-       <img alt="user_avatar" src={userPic} className="w-9 rounded-full "/>
+        <img alt="user_avatar" src={user.pic} className="w-9 rounded-full "/>
         <div className="font-normal pl-2 text-base">{user.name}</div>
        </div>
      </div>
-     <div className="bg-gray-200 h-15 ">
-        <textarea value={title} onChange={(event)=>setTitle(event.target.value)} placeholder="Write Title here" className="pl-6 placeholder-gray-300 placeholder- text-2xl font-semibold  w-full border-none outline-none border-transparent " id="title" name="title" />
-     </div>
 
-     <div className="flex h-full w-full ">
-         <div className="h-full w-4/5">{
-            props.match.params.draftID &&!savedDraft? <div className="text-xl pl-5 font-bold  font-timeNewRoman">No Saved Draft Found</div>:
-              <MyEditor editorContent={editorContent} draftID={props.match.params.draftID}/>
+
+     <div className="flex h-full w-full  overflow-hidden">
+      <div className="flex flex-col w-4/5">
+
+         <div className="bg-gray-200 h-15">
+           <textarea value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Write Title here" className="pl-6 placeholder-gray-300 placeholder- text-2xl font-semibold  w-full border-none outline-none border-transparent " id="title" name="title" />
+         </div>
+         <div className="h-full  overflow-auto">{
+          <MyEditor editorContent={editorContent} blogContent={blogContent} draftID={null} />
+          //  blogContent ? <MyEditor editorContent={editorContent} blogContent={blogContent} draftID={null}/>:
+          //  props.match.params.draftID&&!savedDraft ? <div className="text-xl pl-5 font-bold  font-timeNewRoman">No Saved Draft Found</div> :
+          //   <MyEditor editorContent={editorContent} blogContent={null} draftID={props.match.params.draftID} />
+          
           }
-          </div>
+         </div>
+         
+       </div>
+     
 
          <div  className="flex w-1/5 h-full flex-col p-2 border-4 border-gray-100">
+           <div className="flex flex-col  mb-3 mt-2 ">
+          {coverImage && <img  className="w-full h-40 rounded-sm"  src={ (typeof coverImage)==='string'?coverImage:  URL.createObjectURL(coverImage)} alt="cover_image"/> }
+            <label className="mt-2 flex justify-center items-center cursor-pointer h-10 w-full px-8 py-1 bg-gray-300 inline-block shadow-sm hover:bg-gray-400 rounded-md">
+               <span >Choose a cover Image</span>
+            <input type="file" onChange={(event) => fileChangedHandler(event)} className="hidden" />
+             </label>
+                   
+           </div>
            <button disabled={wordCount===0?'disabled':''} type="button"  onClick={()=>saveLocal()} className="disabled:opacity-50  px-8 py-1 bg-gray-300 inline-block shadow-sm hover:bg-gray-400 rounded-md">Save Draft</button>
            <div className="text-gray-300 mt-1 ml-1">{draftSavedTime?`Last saved ${draftSavedTime} minutes ago`:""}</div>
            <div className="mt-3">

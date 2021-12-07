@@ -41,16 +41,16 @@ const SavedDraft = ()=>{
 
     }
 
-    return <div className="flex flex-col h-screen w-screen bg-gray-50">
-    <div className="flex items-center  pl-5 h-16 bg-purple-600 w-full text-white">
+    return <div className="flex flex-col  bg-gray-50">
+    {/* <div className="flex items-center  pl-5 h-16 bg-purple-600 w-full text-white">
       <div> BlogNow</div>
       <div className="ml-auto pr-10 flex items-center">
       <img alt="user_avatar" src={userPic} className="w-9 rounded-full "/>
       <div className="font-normal pl-2 text-base">{userName}</div>
       </div>
-    </div>
+    </div> */}
     <div>
-        <div>Saved Draft</div>
+        {/* <div>Saved Draft</div> */}
         <div className="mx-40 my-10">
         <div className="flex justify-between  border-b-2 py-5 px-3 text-lg font-medium text-gray-300">
             <div>Title</div>
